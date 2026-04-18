@@ -21,3 +21,29 @@ class TextNode:
 
     def __repr__(self):
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
+
+
+def split_nodes_delimiter(old_nodes: list[TextNode], delimiter, text_type):
+    result = []
+
+    for n in old_nodes:
+        if n.text_type != TextType.TEXT:
+            result.append(n)
+            continue
+
+        txt = n.text
+        while delimiter in txt:
+            sp = txt.split(delimiter, maxsplit=1)
+            if len(sp[0]) > 0:
+                result.append(TextNode(sp[0], TextType.TEXT))
+            if delimiter not in sp[1]:
+                raise ValueError(f"invalid markup: '{txt}'")
+            sp = sp[1].split(delimiter, maxsplit=1)
+            result.append(TextNode(sp[0], text_type))
+            txt = sp[1]
+
+        if len(txt) > 0:
+            result.append(TextNode(txt, TextType.TEXT))
+
+
+    return result

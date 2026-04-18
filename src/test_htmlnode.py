@@ -1,6 +1,7 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from htmlnode import HTMLNode, LeafNode, ParentNode, text_node_to_html_node
+from textnode import TextNode, TextType
 
 
 class TestHTMLNode(unittest.TestCase):
@@ -31,6 +32,20 @@ class TestHTMLNode(unittest.TestCase):
             "<div><span><b>grandchild</b></span></div>",
         )
 
+    def test_text(self):
+        node = TextNode("This is a text node", TextType.TEXT)
+        html_node = text_node_to_html_node(node)
+        self.assertEqual(html_node.tag, None)
+        self.assertEqual(html_node.value, "This is a text node")
+
+        self.assertEqual(text_node_to_html_node(TextNode("This is a bold node", TextType.BOLD)).to_html(),
+                         "<b>This is a bold node</b>")
+
+        self.assertEqual(text_node_to_html_node(TextNode("This is a link node", TextType.LINK, "foo.com")).to_html(),
+                         '<a href="foo.com">This is a link node</a>')
+
+        self.assertEqual(text_node_to_html_node(TextNode("This is an image node", TextType.IMAGE, "foo.com")).to_html(),
+                         '<img src="foo.com" alt="This is an image node"></img>')
 
 
 if __name__ == "__main__":

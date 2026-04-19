@@ -1,3 +1,5 @@
+import re
+
 from enum import Enum
 
 class TextType(Enum):
@@ -47,3 +49,41 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter, text_type):
 
 
     return result
+
+def split_nodes_image(old_nodes):
+    return split_url_nodes_image(old_nodes, r"!\[([^\]]*)\]\(([^\)]*)\)", TextType.IMAGE)
+
+def split_nodes_link(old_nodes):
+    return split_url_nodes_image(old_nodes, r"\[([^\]]*)\]\(([^\)]*)\)", TextType.LINK)
+
+def split_url_nodes_image(old_nodes, regex, text_type):
+    result = []
+
+    for n in old_nodes:
+        if n.text_type != TextType.TEXT:
+            result.append(n)
+            continue
+
+        text = n.text
+        start = 0
+        matches = re.finditer(regex, text)
+        for m in matches:
+            pref = text[start:m.start()]
+            if len(pref) > 0:
+                result.append(TextNode(pref, TextType.TEXT))
+            alt = m[1]
+            url = m[2]
+            result.append(TextNode(alt, text_type, url))
+            start = m.end()
+
+        if start < len(text):
+            result.append(TextNode(text[start:], TextType.TEXT))
+
+    return result
+
+
+def extract_markdown_images(text):
+    return re.findall(r"!\[([^\]]*)\]\(([^\)]*)\)", text)
+
+def extract_markdown_links(text):
+    return re.findall(r"\[([^\]]*)\]\(([^\)]*)\)", text)

@@ -91,18 +91,25 @@ def markdown_to_html_node(markdown):
                 head_level = len(block)
                 block = block.lstrip("#")
                 head_level -= len(block)
-                children.append(LeafNode(f"h{head_level}", block.strip()))
+                children.append(ParentNode(f"h{head_level}", mdtext_to_html_nodes(block.strip())))
             case BlockType.QUOTE:
                 lines = map(lambda s: s.lstrip(">").lstrip(), block.split("\n"))
                 ch = map(lambda l: LeafNode(None, l + "<br>"), lines)
                 children.append(ParentNode("blockquote", list(ch)))
             case BlockType.U_LIST:
                 lines = map(lambda s: s.lstrip("-").lstrip(), block.split("\n"))
-                ch = map(lambda l: LeafNode("li", l), lines)
+                ch = map(lambda l: ParentNode("li", mdtext_to_html_nodes(l)), lines)
                 children.append(ParentNode("ul", ch))
             case BlockType.O_LIST:
                 lines = map(lambda s: s.split(".", maxsplit=1)[1].lstrip(), block.split("\n"))
-                ch = map(lambda l: LeafNode("li", l), lines)
+                ch = map(lambda l: ParentNode("li", mdtext_to_html_nodes(l)), lines)
                 children.append(ParentNode("ol", ch))
 
     return ParentNode("div", children)
+
+def extract_title(markdown):
+    for l in markdown.split("\n"):
+        if l.startswith("# "):
+            return l[2:]
+    raise Exception("no title")
+

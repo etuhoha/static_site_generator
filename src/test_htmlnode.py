@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode, ParentNode, markdown_to_html_node, text_node_to_html_node
+from htmlnode import HTMLNode, LeafNode, ParentNode, extract_title, markdown_to_html_node, text_node_to_html_node
 from textnode import TextNode, TextType
 
 
@@ -133,6 +133,11 @@ the **same** even with inline stuff
             html,
             "<div><ol><li>first</li><li>second</li><li>third</li></ol></div>",
         )
+
+    def test_extract_title(self):
+        self.assertEqual(extract_title("# Foo Bar"), "Foo Bar")
+        self.assertRaises(Exception, lambda: extract_title("#Foo Bar"))
+        self.assertRaises(Exception, lambda: extract_title("Foo Bar"))
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,5 @@
-from textnode import TextType, TextNode
-
+from blocknode import block_to_block_type, markdown_to_blocks, BlockType
+from textnode import TextType, TextNode, text_to_textnodes
 
 class HTMLNode:
     def __init__(self, tag=None, value=None, children=None, props=None) -> None:
@@ -72,3 +72,37 @@ def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
             return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
 
     raise ValueError("unknown type")
+
+def mdtext_to_html_nodes(text):
+    return list(map(text_node_to_html_node, text_to_textnodes(text)))
+
+def markdown_to_html_node(markdown):
+    children = []
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        match block_type:
+            case BlockType.CODE:
+                children.append(ParentNode("pre", [LeafNode("code", block.strip("`").lstrip("\n"))]))
+            case BlockType.PARA:
+                ch = mdtext_to_html_nodes(block.replace("\n", " "))
+                children.append(ParentNode("p", ch))
+            case BlockType.HEADING:
+                head_level = len(block)
+                block = block.lstrip("#")
+                head_level -= len(block)
+                children.append(LeafNode(f"h{head_level}", block.strip()))
+            case BlockType.QUOTE:
+                lines = map(lambda s: s.lstrip(">").lstrip(), block.split("\n"))
+                ch = map(lambda l: LeafNode(None, l + "<br>"), lines)
+                children.append(ParentNode("blockquote", list(ch)))
+            case BlockType.U_LIST:
+                lines = map(lambda s: s.lstrip("-").lstrip(), block.split("\n"))
+                ch = map(lambda l: LeafNode("li", l), lines)
+                children.append(ParentNode("ul", ch))
+            case BlockType.O_LIST:
+                lines = map(lambda s: s.split(".", maxsplit=1)[1].lstrip(), block.split("\n"))
+                ch = map(lambda l: LeafNode("li", l), lines)
+                children.append(ParentNode("ol", ch))
+
+    return ParentNode("div", children)

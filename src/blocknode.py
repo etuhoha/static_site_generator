@@ -34,4 +34,4 @@ def block_to_block_type(block):
 
 
 def markdown_to_blocks(markdown):
-    return list(map(lambda s: s.strip(), markdown.split("\n\n")))
+    return list(filter(lambda s: len(s) > 0, map(lambda s: s.strip(), markdown.split("\n\n"))))
